@@ -1,0 +1,32 @@
+#include <windows.h>
+
+100 ICON "comicsight.ico"
+
+VS_VERSION_INFO VERSIONINFO
+FILEVERSION    @WIN32_FILEVERSION@
+PRODUCTVERSION @WIN32_PRODUCTVERSION@
+FILEFLAGSMASK  VS_FFI_FILEFLAGSMASK
+FILEFLAGS      @WIN32_FILEFLAGS@
+FILEOS         VOS__WINDOWS32
+FILETYPE       VFT_APP
+FILESUBTYPE    VFT2_UNKNOWN
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904E4"
+        BEGIN
+            VALUE "CompanyName",      "Pascal Weisenburger\0"
+            VALUE "FileDescription",  "ComicSight\0"
+            VALUE "FileVersion",      "@WIN32_FILEVERSION_STR@\0"
+            VALUE "InternalName",     "ComicSight\0"
+            VALUE "LegalCopyright",   "ISC-licensed, Copyright (c) 2014, Pascal Weisenburger\0"
+            VALUE "OriginalFilename", "comicsight.exe\0"
+            VALUE "ProductName",      "ComicSight\0"
+            VALUE "ProductVersion",   "@WIN32_PRODUCTVERSION_STR@\0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1252
+    END
+END

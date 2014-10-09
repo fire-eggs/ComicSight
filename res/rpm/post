@@ -1,0 +1,3 @@
+update-desktop-database &> /dev/null ||:
+touch --no-create /usr/share/icons/hicolor >&/dev/null || :
+gtk-update-icon-cache /usr/share/icons/hicolor >&/dev/null || :

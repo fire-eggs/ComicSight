@@ -1,0 +1,316 @@
+;--------------------------------
+; General
+
+SetCompressor @CPACK_NSIS_COMPRESSOR@
+
+!define INSTALL_SOURCE_DIR "@CPACK_TEMPORARY_DIRECTORY@"
+!define UNINSTALL_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\@CPACK_PACKAGE_INSTALL_REGISTRY_KEY@"
+!define APPLICATIONS_KEY "Software\Classes\Applications"
+!define UNINSTALL_EXE "Uninstall.exe"
+
+!define MUI_FINISHPAGE_NOAUTOCLOSE
+!define MUI_UNFINISHPAGE_NOAUTOCLOSE
+ShowInstDetails show
+ShowUninstDetails show
+
+!define MULTIUSER_EXECUTIONLEVEL Highest
+!define MULTIUSER_MUI
+!define MULTIUSER_INSTALLMODE_COMMANDLINE
+!define MULTIUSER_INSTALLMODE_INSTDIR "@CPACK_PACKAGE_INSTALL_DIRECTORY@"
+!define MULTIUSER_INSTALLMODE_INSTDIR_REGISTRY_KEY "${UNINSTALL_KEY}"
+!define MULTIUSER_INSTALLMODE_INSTDIR_REGISTRY_VALUENAME "InstallLocation"
+!define MULTIUSER_INSTALLMODE_DEFAULT_REGISTRY_KEY "${UNINSTALL_KEY}"
+!define MULTIUSER_INSTALLMODE_DEFAULT_REGISTRY_VALUENAME "InstallLocation"
+
+!include MultiUser.nsh
+!include MUI2.nsh
+!include LogicLib.nsh
+!include WinVer.nsh
+!include x64.nsh
+
+Name "@CPACK_NSIS_PACKAGE_NAME@"
+OutFile "@CPACK_TOPLEVEL_DIRECTORY@/@CPACK_OUTPUT_FILE_NAME@"
+BrandingText "Nullsoft Install System: Installing @CPACK_NSIS_PACKAGE_NAME@"
+RequestExecutionLevel user
+
+;--------------------------------
+; Scripts
+
+@CPACK_NSIS_DEFINES@
+
+#use !define INSTALL64 if installed application is 64 bit
+#
+#!ifdef INSTALL64
+#  !include StrReplace.nsh
+#!endif
+#!include FileAssoc.nsh
+#!include InstallationSize.nsh
+
+#use the following for custom images
+#
+#!define MUI_WELCOMEFINISHPAGE_BITMAP "image.bmp"
+#!define MUI_HEADERIMAGE
+#!define MUI_HEADERIMAGE_BITMAP "image.bmp"
+
+#use !define INCLUDE_UNRAR if the unrar library should be included in the installer
+
+;--------------------------------
+; Variables
+
+Var StartMenuFolder
+
+!ifdef INSTALL64
+Var DirectoryPageSkipInstall64Correction
+!endif
+
+;--------------------------------
+; Pages
+
+!insertmacro MUI_PAGE_WELCOME
+#!insertmacro MUI_PAGE_LICENSE "@CPACK_RESOURCE_FILE_LICENSE@"
+
+!ifdef INSTALL64
+!define MUI_PAGE_CUSTOMFUNCTION_LEAVE leaveInstallModePage
+!endif
+!insertmacro MULTIUSER_PAGE_INSTALLMODE
+
+!ifdef INSTALL64
+!define MUI_PAGE_CUSTOMFUNCTION_PRE enterDirectoryPage
+!endif
+!insertmacro MUI_PAGE_DIRECTORY
+
+!define MUI_STARTMENUPAGE_REGISTRY_ROOT "SHCTX"
+!define MUI_STARTMENUPAGE_REGISTRY_KEY ${UNINSTALL_KEY}
+!define MUI_STARTMENUPAGE_REGISTRY_VALUENAME "StartMenuFolder"
+!insertmacro MUI_PAGE_STARTMENU Application $StartMenuFolder
+
+!insertmacro MUI_PAGE_COMPONENTS
+!insertmacro MUI_PAGE_INSTFILES
+
+!define MUI_PAGE_CUSTOMFUNCTION_PRE enterFinishPage
+!insertmacro MUI_PAGE_FINISH
+
+!insertmacro MUI_UNPAGE_CONFIRM
+!insertmacro MUI_UNPAGE_INSTFILES
+
+!ifdef INSTALL64
+
+Function leaveInstallModePage
+  StrCpy $DirectoryPageSkipInstall64Correction 0
+FunctionEnd
+
+Function enterDirectoryPage
+  ${If} $DirectoryPageSkipInstall64Correction <> 1
+    ${StrReplace} $INSTDIR $INSTDIR $PROGRAMFILES $PROGRAMFILES64
+  ${EndIf}
+  StrCpy $DirectoryPageSkipInstall64Correction 1
+FunctionEnd
+
+!endif
+
+Function enterFinishPage
+  ${IfNot} ${Silent}
+  ${AndIf} ${AtLeastWinVista}
+  ${IfCmd} MessageBox MB_ICONQUESTION|MB_YESNO \
+                      "Do you want to inspect the selected default programs \
+                       for the file types that @CPACK_NSIS_PACKAGE_NAME@ is capable of showing?" \
+                      IDYES \
+    ${||} ${FileAssoc_LaunchAssociationUI} "ComicSight" ${|}
+  ${EndIf}
+FunctionEnd
+
+;--------------------------------
+; Languages
+
+!insertmacro MUI_LANGUAGE "English"
+
+;--------------------------------
+; Reserve Files
+
+#!insertmacro MUI_RESERVEFILE_LANGDLL
+ReserveFile "${NSISDIR}\Plugins\*.dll"
+
+;--------------------------------
+; Installer Sections
+
+Section "ComicSight" ComicSight
+  SectionIn RO
+
+  SetOutPath "$INSTDIR"
+  File /r "${INSTALL_SOURCE_DIR}\comicsight.exe"
+
+  !ifdef INCLUDE_UNRAR
+  File /r "${INSTALL_SOURCE_DIR}\unrar.dll"
+  !endif
+SectionEnd
+
+Section -ComicSightRegistry
+  WriteRegStr SHCTX "${APPLICATIONS_KEY}\comicsight.exe" "FriendlyAppName" "@CPACK_NSIS_DISPLAY_NAME@"
+  WriteRegStr SHCTX "${APPLICATIONS_KEY}\comicsight.exe\shell\open\command" "" "$\"$INSTDIR\comicsight.exe$\" $\"%1$\""
+  WriteRegStr SHCTX "${APPLICATIONS_KEY}\comicsight.exe\DefaultIcon" "" "$INSTDIR\@CPACK_NSIS_INSTALLED_ICON_NAME@"
+
+  WriteRegStr SHCTX "${APPLICATIONS_KEY}\comicsight.exe\SupportedTypes" ".cbz" ""
+  WriteRegStr SHCTX "${APPLICATIONS_KEY}\comicsight.exe\SupportedTypes" ".cbr" ""
+  WriteRegStr SHCTX "${APPLICATIONS_KEY}\comicsight.exe\SupportedTypes" ".cbt" ""
+  WriteRegStr SHCTX "${APPLICATIONS_KEY}\comicsight.exe\SupportedTypes" ".cb7" ""
+  WriteRegStr SHCTX "${APPLICATIONS_KEY}\comicsight.exe\Capabilities" "ApplicationDescription" "@CPACK_PACKAGE_DESCRIPTION_SUMMARY@"
+  WriteRegStr SHCTX "${APPLICATIONS_KEY}\comicsight.exe\Capabilities" "ApplicationIcon" "$INSTDIR\@CPACK_NSIS_INSTALLED_ICON_NAME@"
+  WriteRegStr SHCTX "${APPLICATIONS_KEY}\comicsight.exe\Capabilities" "ApplicationName" "@CPACK_NSIS_DISPLAY_NAME@"
+
+  WriteRegStr SHCTX "${APPLICATIONS_KEY}\comicsight.exe\Capabilities\FileAssociations" ".cbz" "ComicSight.ComicBookArchive"
+  WriteRegStr SHCTX "${APPLICATIONS_KEY}\comicsight.exe\Capabilities\FileAssociations" ".cbr" "ComicSight.ComicBookArchive"
+  WriteRegStr SHCTX "${APPLICATIONS_KEY}\comicsight.exe\Capabilities\FileAssociations" ".cbt" "ComicSight.ComicBookArchive"
+  WriteRegStr SHCTX "${APPLICATIONS_KEY}\comicsight.exe\Capabilities\FileAssociations" ".cb7" "ComicSight.ComicBookArchive"
+
+  WriteRegStr SHCTX "Software\RegisteredApplications" "ComicSight" "${APPLICATIONS_KEY}\comicsight.exe\Capabilities"
+SectionEnd
+
+Section -StartMenu
+  !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
+    CreateDirectory "$SMPROGRAMS\$StartMenuFolder"
+    CreateShortCut "$SMPROGRAMS\$StartMenuFolder\ComicSight.lnk" "$INSTDIR\comicsight.exe"
+  !insertmacro MUI_STARTMENU_WRITE_END
+SectionEnd
+
+Section "Default comic viewer" DefaultFileTypeAssociation
+  DetailPrint "Create default file type associations: CBZ, CBR, CBT, CB7"
+  ${FileAssoc_RegisterProgID} "ComicSight.ComicBookArchive" "Comic Book Archive" "$INSTDIR\comicsight.exe,0" "$\"$INSTDIR\comicsight.exe$\" $\"%1$\""
+  ${FileAssoc_RegisterExt} ".cbz" "ComicSight.ComicBookArchive" "${UNINSTALL_KEY}"
+  ${FileAssoc_RegisterExt} ".cbr" "ComicSight.ComicBookArchive" "${UNINSTALL_KEY}"
+  ${FileAssoc_RegisterExt} ".cbt" "ComicSight.ComicBookArchive" "${UNINSTALL_KEY}"
+  ${FileAssoc_RegisterExt} ".cb7" "ComicSight.ComicBookArchive" "${UNINSTALL_KEY}"
+  ${FileAssoc_UpdateShell}
+SectionEnd
+
+Section -OpenWithFileTypeAssociation
+  ${IfNot} ${SectionIsSelected} ${DefaultFileTypeAssociation}
+    DetailPrint "Create file type associations for $\"Open with$\" : CBZ, CBR, CBT, CB7"
+    ${FileAssoc_RegisterProgID} "ComicSight.ComicBookArchive" "Comic Book Archive" "$INSTDIR\comicsight.exe,0" "$\"$INSTDIR\comicsight.exe$\" $\"%1$\""
+    ${FileAssoc_RegisterExtOpenWith} ".cbz" "ComicSight.ComicBookArchive" "${UNINSTALL_KEY}"
+    ${FileAssoc_RegisterExtOpenWith} ".cbr" "ComicSight.ComicBookArchive" "${UNINSTALL_KEY}"
+    ${FileAssoc_RegisterExtOpenWith} ".cbt" "ComicSight.ComicBookArchive" "${UNINSTALL_KEY}"
+    ${FileAssoc_RegisterExtOpenWith} ".cb7" "ComicSight.ComicBookArchive" "${UNINSTALL_KEY}"
+    ${FileAssoc_UpdateShell}
+  ${EndIf}
+SectionEnd
+
+Section -Uninstaller
+  WriteUninstaller "$INSTDIR\${UNINSTALL_EXE}"
+
+  WriteRegStr SHCTX "${UNINSTALL_KEY}" "DisplayName" "@CPACK_NSIS_DISPLAY_NAME@"
+  WriteRegStr SHCTX "${UNINSTALL_KEY}" "DisplayVersion" "@CPACK_PACKAGE_VERSION@"
+  WriteRegStr SHCTX "${UNINSTALL_KEY}" "Publisher" "@CPACK_PACKAGE_VENDOR@"
+  WriteRegStr SHCTX "${UNINSTALL_KEY}" "Comments" "@CPACK_PACKAGE_DESCRIPTION_SUMMARY@"
+  WriteRegStr SHCTX "${UNINSTALL_KEY}" "InstallLocation" "$INSTDIR"
+  WriteRegStr SHCTX "${UNINSTALL_KEY}" "UninstallString" "$\"$INSTDIR\${UNINSTALL_EXE}$\" /$MultiUser.InstallMode"
+  WriteRegStr SHCTX "${UNINSTALL_KEY}" "QuietUninstallString" "$\"$INSTDIR\${UNINSTALL_EXE}$\" /$MultiUser.InstallMode /S"
+  WriteRegDWORD SHCTX "${UNINSTALL_KEY}" "NoRepair" "1"
+  WriteRegDWORD SHCTX "${UNINSTALL_KEY}" "NoModify" "1"
+  WriteRegStr SHCTX "${UNINSTALL_KEY}" "DisplayIcon" "$INSTDIR\@CPACK_NSIS_INSTALLED_ICON_NAME@"
+  WriteRegStr SHCTX "${UNINSTALL_KEY}" "HelpLink" "@CPACK_NSIS_HELP_LINK@"
+  WriteRegStr SHCTX "${UNINSTALL_KEY}" "URLInfoAbout" "@CPACK_NSIS_URL_INFO_ABOUT@"
+  WriteRegStr SHCTX "${UNINSTALL_KEY}" "Contact" "@CPACK_NSIS_CONTACT@"
+  ${GetInstalledSize} $0
+  WriteRegDWORD SHCTX "${UNINSTALL_KEY}" "EstimatedSize" "$0"
+SectionEnd
+
+;--------------------------------
+; Descriptions
+
+!insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
+  !insertmacro MUI_DESCRIPTION_TEXT ${ComicSight} \
+    "ComicSight main application"
+  !insertmacro MUI_DESCRIPTION_TEXT ${DefaultFileTypeAssociation} \
+    "The following comic book archive file types will be shown in ComicSight by default:$\nCBZ, CBR, CBT, CB7$\n$\n\
+     Note: Starting with Windows 8, it is up to the user to choose default applications"
+!insertmacro MUI_FUNCTION_DESCRIPTION_END
+
+;--------------------------------
+; Installer Functions
+
+Function .onInit
+  !ifdef INSTALL64
+  SetRegView 64
+  !endif
+
+  !insertmacro MULTIUSER_INIT
+  #!insertmacro MUI_LANGDLL_DISPLAY
+
+  !ifdef INSTALL64
+  ${IfNot} ${RunningX64}
+    MessageBox MB_ICONEXCLAMATION|MB_OK \
+               "The @CPACK_NSIS_DISPLAY_NAME@ 64-bit version cannot be installed on a 32-bit operating system."
+    Abort
+  ${EndIf}
+  !endif
+
+  ${IfNot} ${Silent}
+    ReadRegStr $0 SHCTX "${UNINSTALL_KEY}" "UninstallString"
+    ReadRegStr $1 SHCTX "${UNINSTALL_KEY}" "InstallLocation"
+    ${If} $0 != ""
+      ${If} ${Cmd} `MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION \
+                    "@CPACK_NSIS_PACKAGE_NAME@ is already installed.$\n$\n\
+                     Click $\"OK$\" to remove the previously installed version \
+                     or $\"Cancel$\" to cancel the installation process." \
+                    IDCANCEL`
+        Abort
+      ${Else}
+        ClearErrors
+        ExecWait "$0 _?=$INSTDIR" ; do not copy the uninstaller to a temp file, so we can wait for it
+        ${IfNot} ${Errors}
+          ${If} $1 != ""
+            Delete "$1\${UNINSTALL_EXE}"
+            RMDir "$1"
+          ${EndIf}
+        ${Else}
+          ${If} ${Cmd} `MessageBox MB_YESNO|MB_ICONEXCLAMATION \
+                       "The previously installed @CPACK_NSIS_PACKAGE_NAME@ version failed to be removed.$\n$\n\
+                        Do you want to cancel the installation process." \
+                       IDYES`
+            Abort
+          ${EndIf}
+        ${EndIf}
+      ${EndIf}
+    ${EndIf}
+  ${EndIf}
+FunctionEnd
+
+Function un.onInit
+  !ifdef INSTALL64
+  SetRegView 64
+  !endif
+
+  !insertmacro MULTIUSER_UNINIT
+  #!insertmacro MUI_UNGETLANGUAGE
+FunctionEnd
+
+;--------------------------------
+; Uninstaller Section
+
+Section "Uninstall"
+  !insertmacro MUI_STARTMENU_GETFOLDER Application $StartMenuFolder
+
+  DetailPrint "Remove file type associations: CBZ, CBR, CBT, CB7"
+  ${FileAssoc_UnRegisterProgID} "ComicSight.ComicBookArchive"
+  ${FileAssoc_UnRegisterExt} ".cbz" "ComicSight.ComicBookArchive" "${UNINSTALL_KEY}"
+  ${FileAssoc_UnRegisterExt} ".cbr" "ComicSight.ComicBookArchive" "${UNINSTALL_KEY}"
+  ${FileAssoc_UnRegisterExt} ".cbt" "ComicSight.ComicBookArchive" "${UNINSTALL_KEY}"
+  ${FileAssoc_UnRegisterExt} ".cb7" "ComicSight.ComicBookArchive" "${UNINSTALL_KEY}"
+  ${FileAssoc_UpdateShell}
+
+  Delete "$SMPROGRAMS\$StartMenuFolder\ComicSight.lnk"
+  RMDir "$SMPROGRAMS\$StartMenuFolder"
+
+  Delete "$INSTDIR\comicsight.exe"
+
+  !ifdef INCLUDE_UNRAR
+  Delete "$INSTDIR\unrar.dll"
+  !endif
+
+  Delete "$INSTDIR\${UNINSTALL_EXE}"
+  RMDir "$INSTDIR"
+
+  DeleteRegKey SHCTX "${UNINSTALL_KEY}"
+  DeleteRegKey SHCTX "${APPLICATIONS_KEY}\comicsight.exe"
+  DeleteRegValue SHCTX "Software\RegisteredApplications" "ComicSight"
+SectionEnd

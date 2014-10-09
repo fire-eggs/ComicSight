@@ -1,0 +1,2 @@
+?package(comicsight):needs="X11" section="Applications/Viewers"\
+  title="ComicSight" command="/usr/bin/comicsight"

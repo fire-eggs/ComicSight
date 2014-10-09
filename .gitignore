@@ -1,0 +1,24 @@
+# ignore build directories
+build*/
+
+# ignore external library sources
+lib/src/*/
+
+# ignore external library binaries
+lib/*/bin/
+lib/*/lib/
+
+# ignore cmake/cpack directories
+CMakeFiles/
+_CPack_Packages/
+
+# ignore all files in the top level directory
+# except for those that are supposed to be there
+/*
+!/cmake/
+!/lib/
+!/res/
+!/src/
+!/CMakeLists.txt
+!/*.md
+!/.gitignore

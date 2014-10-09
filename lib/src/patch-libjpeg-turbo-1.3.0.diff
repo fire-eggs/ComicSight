@@ -1,0 +1,46 @@
+diff -ru libjpeg-turbo-1.3.0.orig/CMakeLists.txt libjpeg-turbo-1.3.0/CMakeLists.txt
+--- libjpeg-turbo-1.3.0.orig/CMakeLists.txt	2013-05-10 23:08:53 +0200
++++ libjpeg-turbo-1.3.0/CMakeLists.txt	2013-12-07 13:40:46 +0100
+@@ -7,10 +7,7 @@
+ project(libjpeg-turbo C)
+ set(VERSION 1.3.0)
+ 
+-if(MINGW OR CYGWIN)
+-  execute_process(COMMAND "date" "+%Y%m%d" OUTPUT_VARIABLE BUILD)
+-  string(REGEX REPLACE "\n" "" BUILD ${BUILD})
+-elseif(WIN32)
++if(CMAKE_HOST_WIN32)
+   execute_process(COMMAND "wmic.exe" "os" "get" "LocalDateTime" OUTPUT_VARIABLE
+     BUILD)
+   string(REGEX REPLACE "[^0-9]" "" BUILD "${BUILD}")
+@@ -20,6 +17,9 @@
+   else()
+     string(SUBSTRING "${BUILD}" 0 8 BUILD)
+   endif()
++elseif(MINGW OR CYGWIN)
++  execute_process(COMMAND "date" "+%Y%m%d" OUTPUT_VARIABLE BUILD)
++  string(REGEX REPLACE "\n" "" BUILD ${BUILD})
+ else()
+   message(FATAL_ERROR "Platform not supported by this build system.  Use autotools instead.")
+ endif()
+@@ -96,13 +96,13 @@
+ endif()
+ 
+ if(MSVC)
+-  # Use the static C library for all build types
+-  foreach(var CMAKE_C_FLAGS CMAKE_C_FLAGS_DEBUG CMAKE_C_FLAGS_RELEASE
+-    CMAKE_C_FLAGS_MINSIZEREL CMAKE_C_FLAGS_RELWITHDEBINFO)
+-    if(${var} MATCHES "/MD")
+-      string(REGEX REPLACE "/MD" "/MT" ${var} "${${var}}")
+-    endif()
+-  endforeach()
++#  # Use the static C library for all build types
++#  foreach(var CMAKE_C_FLAGS CMAKE_C_FLAGS_DEBUG CMAKE_C_FLAGS_RELEASE
++#    CMAKE_C_FLAGS_MINSIZEREL CMAKE_C_FLAGS_RELWITHDEBINFO)
++#    if(${var} MATCHES "/MD")
++#      string(REGEX REPLACE "/MD" "/MT" ${var} "${${var}}")
++#    endif()
++#  endforeach()
+ 
+   add_definitions(-W3 -wd4996)
+ endif()

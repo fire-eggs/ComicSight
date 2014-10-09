@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleName</key>
+	<string>ComicSight</string>
+	<key>CFBundleExecutable</key>
+	<string>comicsight</string>
+	<key>CFBundleIconFile</key>
+	<string>comicsight.icns</string>
+	<key>CFBundleIdentifier</key>
+	<string>comicsight</string>
+	<key>CFBundleSignature</key>
+	<string>auto</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleVersion</key>
+	<string>@OSX_VERSION@</string>
+	<key>CFBundleShortVersionString</key>
+	<string>@OSX_VERSION@</string>
+	<key>CFBundleGetInfoString</key>
+	<string>@OSX_VERSION_STR@</string>
+	<key>NSHumanReadableCopyright</key>
+	<string>ISC-licensed, Copyright (c) 2014, Pascal Weisenburger</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>English</string>
+	<key>CFBundleDocumentTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeName</key>
+			<string>Comic Book Archive</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>cbz</string>
+				<string>cbr</string>
+				<string>cbt</string>
+				<string>cb7</string>
+			</array>
+			<key>CFBundleTypeMIMETypes</key>
+			<array>
+				<string>application/x-cbz</string>
+				<string>application/x-cbr</string>
+				<string>application/x-cbt</string>
+				<string>application/x-cb7</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>CFBundleTypeOSTypes</key>
+			<array>
+				<string>fold</string>
+			</array>
+		</dict>
+	</array>
+</dict>
+</plist>
