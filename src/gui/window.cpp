@@ -19,10 +19,11 @@
 #include <FL/Fl.H>
 #include <FL/fl_draw.H>
 #include <FL/Fl_PNG_Image.H>
-#include <util/vfsresolver.h>
-#include <image/resample.h>
+#include "util/vfsresolver.h"
+#include "image/resample.h"
 #include "window.h"
 
+#ifdef SVGIMG
 extern "C" const unsigned char eyes_data[];
 extern "C" const int eyes_size;
 
@@ -38,6 +39,7 @@ namespace
     Fl_PNG_Image eyes_background(nullptr, eyes_background_data, eyes_background_size);
     Fl_PNG_Image eyes_foreground(nullptr, eyes_foreground_data, eyes_foreground_size);
 }
+#endif
 
 ApplicationWindow::ApplicationWindow(int width, int height, const char* title,
                                      Controller* controller, bool fullscreen)
@@ -67,11 +69,14 @@ void ApplicationWindow::draw()
 {
     ApplicationWindowBase::draw();
 
-    fl_color(0, 0, 0);
+    //fl_color(0, 0, 0);
+    fl_color(128, 0, 0);
     fl_rectf(0, 0, _window_width, _window_height);
 
     if (_controller->comic().page_image().empty() || content_dragging())
     {
+        auto y = (_window_height / 2);
+#ifdef SVGIMG
         auto x = (_window_width - eyes_background.w()) / 2;
         auto y = (_window_height - eyes_background.h()) / 2;
 
@@ -85,6 +90,7 @@ void ApplicationWindow::draw()
         }
         eyes_foreground.draw(x + 48, y + 80);
         eyes_foreground.draw(x + 232, y + 80);
+#endif
 
         if (content_dragging() || (_mouse_over_center && _controller->comic().page_count() == 0))
         {
@@ -92,7 +98,8 @@ void ApplicationWindow::draw()
             fl_color(48, 48, 48);
             fl_font(FL_HELVETICA_BOLD, 30);
             auto width = static_cast<int>(fl_width(text));
-            fl_draw(text, (_window_width - width) / 2, y + eyes_background.h() + 15);
+            //fl_draw(text, (_window_width - width) / 2, y + eyes_background.h() + 15);
+            fl_draw(text, (_window_width - width) / 2, y + 15);
         }
         else if (_controller->comic().page_image().empty() &&
                  _controller->comic().page_count() != 0)
@@ -101,7 +108,8 @@ void ApplicationWindow::draw()
             fl_color(128, 0, 0);
             fl_font(FL_HELVETICA_BOLD, 30);
             auto width = static_cast<int>(fl_width(text));
-            fl_draw(text, (_window_width - width) / 2, y + eyes_background.h() + 15);
+            //fl_draw(text, (_window_width - width) / 2, y + eyes_background.h() + 15);
+            fl_draw(text, (_window_width - width) / 2, y + 15);
 
             if (_mouse_over_center)
             {
@@ -109,7 +117,8 @@ void ApplicationWindow::draw()
                 fl_color(128, 0, 0);
                 fl_font(FL_HELVETICA_BOLD, 20);
                 auto width = static_cast<int>(fl_width(text));
-                fl_draw(text, (_window_width - width) / 2, y + eyes_background.h() + 38);
+                //fl_draw(text, (_window_width - width) / 2, y + eyes_background.h() + 38);
+                fl_draw(text, (_window_width - width) / 2, y + 38);
             }
         }
     }
@@ -145,8 +154,9 @@ int ApplicationWindow::handle(int event)
     {
         auto dx = std::abs(Fl::event_x() - _window_width / 2);
         auto dy = std::abs(Fl::event_y() - _window_height / 2);
-        _mouse_over_center = dx < eyes_background.w() / 2 + 64 &&
-                             dy < eyes_background.h() / 2 + 64;
+        //_mouse_over_center = dx < eyes_background.w() / 2 + 64 &&
+        //                     dy < eyes_background.h() / 2 + 64;
+        _mouse_over_center = dx < 64 && dy < 64;
 
         _eyes_x = -16 + 32 * Fl::event_x() / _window_width;
         _eyes_y = -16 + 32 * Fl::event_y() / _window_height;
@@ -173,9 +183,13 @@ int ApplicationWindow::handle(int event)
                 fullscreen_active() ? fullscreen_off() : fullscreen();
         }
 
-        if ((Fl::event_key(FL_Right) && Fl::event_ctrl()) || strcmp(Fl::event_text(), " ") == 0)
+        if (Fl::event_key(FL_Page_Down) || 
+            (Fl::event_key(FL_Right) && Fl::event_ctrl()) || 
+            strcmp(Fl::event_text(), " ") == 0)
             _controller->perform(this, Action::Next);
-        if ((Fl::event_key(FL_Left) && Fl::event_ctrl()) || Fl::event_key(FL_BackSpace))
+        if (Fl::event_key(FL_Page_Up) ||
+            (Fl::event_key(FL_Left) && Fl::event_ctrl()) || 
+            Fl::event_key(FL_BackSpace))
             _controller->perform(this, Action::Previous);
         if (Fl::event_key(FL_Right))
             _controller->perform(this, Action::Right);

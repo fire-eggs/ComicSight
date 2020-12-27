@@ -20,8 +20,8 @@
 #include <vector>
 #include <memory>
 #include <FL/Fl_Widget.H>
-#include <gui/fltkex.h>
-#include <gui/window.h>
+#include "gui/fltkex.h"
+#include "gui/window.h"
 
 #ifndef WINDOWMANAGER_H
 #define WINDOWMANAGER_H

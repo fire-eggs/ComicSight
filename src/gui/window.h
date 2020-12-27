@@ -19,10 +19,10 @@
 #include <memory>
 #include <FL/Fl_Double_Window.H>
 #include <FL/Fl_RGB_Image.H>
-#include <util/backgroundworker.h>
-#include <gui/fltkex.h>
-#include <gui/mixin.h>
-#include <controller.h>
+#include "util/backgroundworker.h"
+#include "gui/fltkex.h"
+#include "gui/mixin.h"
+#include "controller.h"
 
 #ifndef WINDOW_H
 #define WINDOW_H

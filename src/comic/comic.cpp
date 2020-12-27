@@ -19,9 +19,9 @@
 #include <sys/stat.h>
 #include <algorithm>
 #include <cctype>
-#include <image/colortype.h>
-#include <comic/archivecontentprovider.h>
-#include <comic/directorycontentprovider.h>
+#include "image/colortype.h"
+#include "comic/archivecontentprovider.h"
+#include "comic/directorycontentprovider.h"
 #include "comic.h"
 
 #ifdef _WIN32
@@ -190,6 +190,11 @@ const Image& Comic::page_image(int page) const
     {
         auto& pagename = _pages[page];
         _images[page].reset(new Image);
+
+        //std::string p;
+        //_provider->path(pagename, p);
+        //_images[page]->load(p.c_str());
+
         _images[page]->load(_provider->open(pagename), pagename.c_str());
         _provider->close();
 

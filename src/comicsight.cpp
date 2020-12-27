@@ -18,7 +18,7 @@
 
 #include <FL/Fl.H>
 #include <iostream>
-#include <gui/windowmanager.h>
+#include "gui/windowmanager.h"
 
 WindowManager* windowManager = nullptr;
 extern "C" const char comicsight_version[];
@@ -42,8 +42,12 @@ void osx_open_callback(const char* filename)
 
 #endif
 
+#include <FL\Fl_Shared_Image.H>
+
 int main(int argc, char *argv[])
 {
+    fl_register_images();
+
     auto fullscreen = false;
     auto file = std::string();
 

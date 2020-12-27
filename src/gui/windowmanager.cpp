@@ -34,6 +34,8 @@ extern "C" const int comicsight_size;
 #include <util/vfsresolver.h>
 #include "windowmanager.h"
 
+#define MAX(a,b) (a > b ? a : b)
+
 #ifdef HAVE_X11
 bool window_already_visible(Display* display, Window window,
                             const char* res_name, const char* res_class)
@@ -103,10 +105,14 @@ void WindowManager::open(const std::string& file, bool fullscreen)
     if (_windows.size() != 1 ||
             (_windows.size() == 1 && _windows[0]->controller.comic().valid()))
     {
-        auto container = new WindowContainer(std::max(Fl::w() * 2/3, 640),
-                                             std::max(Fl::h() * 2/3, 480),
-                                             "ComicSight",
-                                             fullscreen);
+        //auto container = new WindowContainer(std::max(Fl::w() * 2/3, 640),
+        //                                     std::max(Fl::h() * 2/3, 480),
+        //                                     "ComicSight",
+        //                                     fullscreen);
+        auto container = new WindowContainer(MAX(Fl::w() * 2 / 3, 640),
+            MAX(Fl::h() * 2 / 3, 480),
+            "ComicSight",
+            fullscreen);
 
         container->original_callback = container->window.callback();
         container->window.callback(FL_CALLBACK_MEMBER(window_closed));

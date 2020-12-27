@@ -16,7 +16,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include <dirent.h>
+#include "dirent.h"
 #include <sys/stat.h>
 #include <cstring>
 #include <fstream>
@@ -25,6 +25,7 @@
 
 #ifdef _WIN32
 # define stat _stat
+#define S_ISREG( m ) (((m) & S_IFMT) == S_IFREG)
 #endif
 
 DirectoryContentProvider::DirectoryContentProvider(const std::string& path)
@@ -54,6 +55,16 @@ DirectoryContentProvider::DirectoryContentProvider(const std::string& path)
             _files.push_back(entry->d_name);
     }
     closedir(directory);
+}
+
+void DirectoryContentProvider::path(const std::string& file, std::string& path)
+{
+#ifdef _WIN32
+    path = (_path + '\\' + file);
+#else
+    return (_path + '/' + file).c_str();
+#endif
+
 }
 
 std::istream& DirectoryContentProvider::open(const std::string& file)

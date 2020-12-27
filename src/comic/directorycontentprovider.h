@@ -30,6 +30,7 @@ public:
     const std::vector<std::string>& files() const { return _files; }
     std::istream& open(const std::string& file);
     void close();
+    void path(const std::string& file, std::string& p);
 
 protected:
     std::string _path;

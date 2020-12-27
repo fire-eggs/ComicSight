@@ -272,14 +272,108 @@ namespace
     }
 }
 
+#include <FL/Fl_Shared_Image.H>
+#include <FL/Fl_BMP_Image.H>
+#include <FL/Fl_PNG_Image.H>
+#include <FL/Fl_JPEG_Image.H>
+#include <FL/Fl_GIF_Image.H>
+
+Fl_Image* _img;
+
 bool Image::load(const char* filename)
 {
-    std::ifstream stream(filename, std::ios::in | std::ios::binary);
-    return load(stream, filename);
+    //if (_img)
+    //    _img->release();
+
+    _img = Fl_Shared_Image::get(filename);
+    if (!_img)
+        return false;
+    _width = _img->w();
+    _height = _img->h();
+    _channels = _img->d();
+    _data = (uint8_t *)*_img->data();
+    return true;
+//    std::ifstream stream(filename, std::ios::in | std::ios::binary);
+//    return load(stream, filename);
 }
+
+enum IMG_TYPE
+{
+    BAD = 0,
+    FL_GIF = 1,
+    FL_JPG = 2,
+    FL_PNG = 3,
+    FL_BMP = 4,
+    WEBP = 5
+};
+
+IMG_TYPE checkImageHeader(uchar* header, int headerlen)
+{
+    if (memcmp(header, "GIF87a", 6) == 0 ||
+        memcmp(header, "GIF89a", 6) == 0)	// GIF file
+        return IMG_TYPE::FL_GIF;
+
+    if (memcmp(header, "BM", 2) == 0)	// BMP file
+        return IMG_TYPE::FL_BMP;
+
+    if (memcmp(header, "\211PNG", 4) == 0)// PNG file
+        return IMG_TYPE::FL_PNG;
+
+    if (memcmp(header, "\377\330\377", 3) == 0 &&
+        // Start-of-Image
+        header[3] >= 0xc0 && header[3] <= 0xFE)  // KBR
+        return IMG_TYPE::FL_JPG;
+
+    // TODO webp
+    return IMG_TYPE::BAD;
+}
+
 
 bool Image::load(std::istream& stream, const char* filename)
 {
+    clear();
+    stream.seekg(0, stream.beg);
+
+    char header[64];
+    stream.read(header, 64);
+
+    IMG_TYPE res = checkImageHeader((uchar*)header, 64);
+    if (res == IMG_TYPE::BAD)
+        return false;
+
+    stream.seekg(0, stream.end);
+    size_t len = stream.tellg();
+    stream.seekg(0, stream.beg);
+
+    char* buffer = new char[len];
+    stream.read(buffer, len);
+
+    Fl_Image* img = NULL;
+    switch (res)
+    {
+    case IMG_TYPE::FL_BMP:
+        img = new Fl_BMP_Image(filename, (const unsigned char *)buffer);
+        break;
+    case IMG_TYPE::FL_GIF:
+        img = new Fl_GIF_Image(filename, (const unsigned char*)buffer);
+        break;
+    case IMG_TYPE::FL_PNG:
+        img = new Fl_PNG_Image(filename, (const unsigned char*)buffer, len);
+        break;
+    case IMG_TYPE::FL_JPG:
+        img = new Fl_JPEG_Image(filename, (const unsigned char*)buffer);
+        break;
+    }
+
+    if (!img)
+        return false;
+
+    _width = img->w();
+    _height = img->h();
+    _channels = img->d();
+    _data = (uint8_t*)*img->data();
+    return true;
+
 #if defined(HAVE_LIBPNG) || defined(HAVE_LIBJPEG)
     bool (*load_func[])(std::istream& stream, image::sample** data,
                         int* width, int* height, int* channels) =

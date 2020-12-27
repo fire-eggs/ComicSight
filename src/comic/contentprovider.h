@@ -30,6 +30,8 @@ public:
     virtual const std::vector<std::string>& files() const = 0;
     virtual std::istream& open(const std::string& file) = 0;
     virtual void close() = 0;
+    virtual void path(const std::string& file, std::string& p) = 0;
+
 };
 
 #endif // CONTENT_PROVIDER_H
