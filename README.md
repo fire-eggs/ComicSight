@@ -1,7 +1,11 @@
 ComicSight
 ==========
 
-A simple fast viewer for comic book archives
+A simple fast viewer for comic book archives.
+
+This fork is a work-in-progress, stability and usability not guarenteed. Primarily an experiment to determine if WEBP can be used for manga images.
+
+_Original readme:_
 
 ComicSight is a lightweight graphical viewer application for the sole purpose
 of displaying comic book archives. It supports the common comic book archive
